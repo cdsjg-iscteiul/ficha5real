@@ -1,6 +1,5 @@
 import itertools
 import math
-import random as rand
 import numpy as num
 
 # Euclidean distante
@@ -48,12 +47,12 @@ def runner():
     test_set = full_sets[1]
     values = []
     last_values = []
+    for g in range(30):
+        for x in range(len(test_set)):
+            distance = calculate_distante(training_set[x], test_set[x])
+            values.append([distance, training_set[x], test_set[x]])
 
-    for x in range(len(test_set)):
-        distance = calculate_distante(training_set[x], test_set[x])
-        values.append([distance, training_set[x], test_set[x]])
-
-    values.sort(key=return_1st)
+    values.sort(key=return_1st, reverse=True)
 
     for tt in range(k):
         last_values.append(values[tt])
@@ -103,3 +102,6 @@ def entropy(set1):
         percentagem_negative, 2)
 
     return value
+
+
+runner()
