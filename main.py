@@ -1,28 +1,46 @@
 import itertools
 import math
 import numpy as num
-
+import \
+    matplotlib.pyplot as plt
 # Euclidean distante
 # d = Raizquadrada( (a-b)^2)
 
-k = 11
+ks = [3, 7, 11]
+splits = [0.3, 0.4, 0.5]
+
+n_fig = 1
 
 combinations_10_all = list(map(list, itertools.product([0, 1], repeat=10)))
-
 
 def return_1st(val):
     return val[0]
 
 
-def make_sets():
+def atib(bits):
+    if sum(bits) >= 5:
+        return "A"
+    else:
+        return "B"
+
+
+def make_sets(split):
     training_set = []
     test_set = []
     num.random.shuffle(combinations_10_all)
+
+    for i in range(len(combinations_10_all)):
+        for h in range(len(combinations_10_all[i])):
+            if combinations_10_all[i][h] == 0:
+                combinations_10_all[i][h] = -1
+
+    print(combinations_10_all)
+
     for x in range(len(combinations_10_all)):
-        if x <= 307:
-            test_set.append(combinations_10_all[x])
+        if x <= int(len(combinations_10_all) * split):
+            test_set.append([combinations_10_all[x], 'clac'])
         else:
-            training_set.append(combinations_10_all[x])
+            training_set.append([combinations_10_all[x], atib(combinations_10_all[x])])
 
     return [training_set, test_set]
 
@@ -35,29 +53,52 @@ def calculate_distante(bits1, bits2):
     return num.sqrt(result)
 
 
-def print_best(values):
-    for x in range(k):
-        print("VALOR:  " + str(values[x][0]) + "  COMBINAÇÃO TRAINING:  " + str(values[x][1]) + "  TEST:  " +
-              str(values[x][2]))
-
-
 def runner():
-    full_sets = make_sets()
-    training_set = full_sets[0]
-    test_set = full_sets[1]
-    values = []
-    last_values = []
-    for g in range(30):
-        for x in range(len(test_set)):
-            distance = calculate_distante(training_set[x], test_set[x])
-            values.append([distance, training_set[x], test_set[x]])
+    global n_fig
+    values = [[], [], []]
 
-    values.sort(key=return_1st, reverse=True)
+    for i in range(30):
+        for k in ks:
+            sets = make_sets(ks.index(k))
+            test = sets[1]
+            train = sets[0]
 
-    for tt in range(k):
-        last_values.append(values[tt])
+            for x in range(len(test)):
+                distances = []
+                for j in train:
+                    distance = calculate_distante(j[0], test[x][0])
+                    distances.append([distance, j[0], j[1]])
 
-    print_best(values)
+                distances.sort()
+                k_closest = distances[:k]
+
+                votos_A = 0
+                votos_B = 0
+                for yy in k_closest:
+                    if yy[1] == "A":
+                        votos_A += 1
+                    else:
+                        votos_B += 1
+
+                if votos_A > (k // 2):
+                    test[x][1] = "A"
+                else:
+                    test[x][1] = "B"
+
+            equal = 0
+            for ii in test:
+                og_class = atib(ii[0])
+                new_class = ii[1]
+                if og_class == new_class:
+                    equal += 1
+            percentage = equal / len(test) * 100
+            values[ks.index(k)].append(round(percentage, 0))
+
+    fig, ax1 = plt.subplots(1, 1)
+    ax1.boxplot(values, labels=ks, vert=True)
+    ax1.legend(['Figure ' + str(n_fig)], handlelength=0)
+    n_fig += 1
+    plt.show()
 
 
 def splitting_lists():
